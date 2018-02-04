@@ -135,17 +135,48 @@ void run_once(long count)
 	putchar('\n');
 }
 
+/* spend <delay> ms waiting for the CPU's frequency to raise. Will also stop
+ * on backwards time jumps if any.
+ */
+void pre_heat(long delay)
+{
+	unsigned long long start = microseconds();
+
+	while (microseconds() - start < (unsigned long long)delay)
+		;
+}
+
+/* determines how long loop50() must be run to reach more than 20 milliseconds.
+ * This will ensure that an integral number of clock ticks will have happened
+ * on 100, 250, 1000 Hz systems.
+ */
+unsigned int calibrate()
+{
+	unsigned long long duration = 0;
+	unsigned long long start;
+	unsigned int count = 1000;
+
+	while (duration < 20000) {
+		count = count * 5 / 4;
+		start = microseconds();
+		loop50(count);
+		duration = microseconds() - start;
+	}
+	return count;
+}
+
 int main(int argc, char **argv)
 {
-	long count = 100000;
-	long runs  = 1;
+	unsigned int count;
+	long runs = 1;
 
 	if (argc > 1)
 		runs = atol(argv[1]);
 
 	if (argc > 2)
-		count = atol(argv[2]);
+		pre_heat(atol(argv[2]));
 
+	count = calibrate();
 	while (runs--)
 		run_once(count);
 
