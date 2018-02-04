@@ -68,73 +68,69 @@ static inline unsigned long long rdtsc()
 	} while (0)
 
 
-/* performs 1000 operations in a loop, all dependant on each other,
- * so that the CPU cannot parallelize them, hoping to take 1000 cycles.
+/* performs 50 operations in a loop, all dependant on each other, so that the
+ * CPU cannot parallelize them, hoping to take 50 cycles per loop, plus the
+ * loop counter overhead.
  */
-static void loop(long n)
+static __attribute__((noinline)) void loop50(unsigned int n)
 {
-	long a = 1, b = 2, c = 3, d = 3, e = n;
-	volatile long sink __attribute__((unused));
+	unsigned int a = 0, b = 0, c = 0, d = 0, e = 0;
 
-	while (1) {
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();
-		run100cycles();        // 900 cycles
+	do {
+		run10cycles();
+		run10cycles();
+		run10cycles();
+		run10cycles();
+		run10cycles();
+	} while (__builtin_expect(--n, 1));
+}
 
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();
-		run10cycles();         // 990 cycles
+/* performs 250 operations in a loop, all dependant on each other, so that the
+ * CPU cannot parallelize them, hoping to take 250 cycles per loop, plus the
+ * loop counter overhead. Do not increase this loop so that it fits in a small
+ * 1 kB L1 cache on 32-bit instruction sets.
+ */
+static __attribute__((noinline)) void loop250(unsigned int n)
+{
+	unsigned int a = 0, b = 0, c = 0, d = 0, e = 0;
 
-		run5cycles();          // 995 cycles
-
-		run1cycle_ae();        // 996 cycles
-		run1cycle_ba();        // 997 cycles
-		run1cycle_eb();        // 998 cycles
-
-		n--;                   // 999 cycles
-		if (!n)                // 1000 cycles (conditional jump)
-			break;
-	}
-	sink = e;
+	do {
+		run10cycles();
+		run10cycles();
+		run10cycles();
+		run10cycles();
+		run10cycles();
+		run100cycles();
+		run100cycles();
+	} while (__builtin_expect(--n, 1));
 }
 
 void run_once(long count)
 {
-	long long tsc_begin, tsc_end, tsc_cost;
-	long long us_begin, us_end, us_cost;
-
-	/* measure overhead */
-	us_begin  = microseconds();
-	tsc_begin = rdtsc();
-	tsc_cost  = rdtsc() - tsc_begin;
-	us_cost   = microseconds() - us_begin;
+	long long tsc_begin, tsc_end50, tsc_end250;
+	long long us_begin, us_end50, us_end250;
 
 	/* now run the loop */
-	us_begin  = microseconds();
-	tsc_begin = rdtsc();
-	loop(count);
-	tsc_end   = rdtsc() - tsc_begin;
-	us_end    = microseconds() - us_begin;
+	us_begin   = microseconds();
+	tsc_begin  = rdtsc();
+	loop50(count);
+	tsc_end50 = rdtsc() - tsc_begin;
+	us_end50  = microseconds() - us_begin;
 
-	tsc_end  -= tsc_cost;
-	us_end   -= us_cost;
+	/* now run the loop */
+	us_begin   = microseconds();
+	tsc_begin  = rdtsc();
+	loop250(count);
+	tsc_end250 = rdtsc() - tsc_begin;
+	us_end250  = microseconds() - us_begin;
 
-	printf("us=%lld cpu_MHz=%lld", us_end, count * 1000LL / us_end);
+	printf("count=%ld us50=%lld us250=%lld diff=%lld cpu_MHz=%.3f",
+	       count, us_end50, us_end250, us_end250 - us_end50,
+	       count * 200.0 / (us_end250 - us_end50));
 #ifdef HAVE_RDTSC
-	printf(" TSC_cycles=%lld (%Ld/loop) rdtsc_MHz=%lld",
-	       tsc_end, tsc_end / count, tsc_end / us_end);
+	printf(" tsc50=%lld tsc250=%lld diff=%lld rdtsc_MHz=%.3f",
+	       tsc_end50, tsc_end250, (tsc_end250 - tsc_end50) / count,
+	       (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50));
 #endif
 	putchar('\n');
 }
