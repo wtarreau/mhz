@@ -177,6 +177,10 @@ int main(int argc, char **argv)
 		pre_heat(atol(argv[2]));
 
 	count = calibrate();
+
+	if (argc > 3)
+		count = atol(argv[3]);
+
 	while (runs--)
 		run_once(count);
 
