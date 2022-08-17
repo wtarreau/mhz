@@ -1,4 +1,5 @@
 #include <sys/time.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -109,20 +110,36 @@ void run_once(long count)
 {
 	long long tsc_begin, tsc_end50, tsc_end250;
 	long long us_begin, us_end50, us_end250;
+	long long us_end;
+	int i;
 
-	/* now run the loop */
-	us_begin   = microseconds();
-	tsc_begin  = rdtsc();
-	loop50(count);
-	tsc_end50 = rdtsc() - tsc_begin;
-	us_end50  = microseconds() - us_begin;
+	/* now run the 50 cycles loop. We'll pick the lowest value
+	 * among 5 runs of the short loop.
+	 */
+	us_end50 = LLONG_MAX;
+	for (i = 0; i < 5; i++) {
+		us_begin   = microseconds();
+		tsc_begin  = rdtsc();
+		loop50(count);
+		tsc_end50 = rdtsc() - tsc_begin;
+		us_end    = microseconds() - us_begin;
+		if (us_end < us_end50)
+			us_end50 = us_end;
+	}
 
-	/* now run the loop */
-	us_begin   = microseconds();
-	tsc_begin  = rdtsc();
-	loop250(count);
-	tsc_end250 = rdtsc() - tsc_begin;
-	us_end250  = microseconds() - us_begin;
+	/* now run the 250 cycles loop. We'll pick the lowest value
+	 * among 3 runs of the short loop.
+	 */
+	us_end250 = LLONG_MAX;
+	for (i = 0; i < 3; i++) {
+		us_begin   = microseconds();
+		tsc_begin  = rdtsc();
+		loop250(count);
+		tsc_end250 = rdtsc() - tsc_begin;
+		us_end     = microseconds() - us_begin;
+		if (us_end < us_end250)
+			us_end250 = us_end;
+	}
 
 	printf("count=%ld us50=%lld us250=%lld diff=%lld cpu_MHz=%.3f",
 	       count, us_end50, us_end250, us_end250 - us_end50,
