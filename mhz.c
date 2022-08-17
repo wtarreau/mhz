@@ -72,7 +72,7 @@ static inline unsigned long long rdtsc()
  * CPU cannot parallelize them, hoping to take 50 cycles per loop, plus the
  * loop counter overhead.
  */
-static __attribute__((noinline)) void loop50(unsigned int n)
+static __attribute__((noinline,aligned(64))) void loop50(unsigned int n)
 {
 	unsigned int a = 0, b = 0, c = 0, d = 0, e = 0;
 
@@ -90,7 +90,7 @@ static __attribute__((noinline)) void loop50(unsigned int n)
  * loop counter overhead. Do not increase this loop so that it fits in a small
  * 1 kB L1 cache on 32-bit instruction sets.
  */
-static __attribute__((noinline)) void loop250(unsigned int n)
+static __attribute__((noinline,aligned(64))) void loop250(unsigned int n)
 {
 	unsigned int a = 0, b = 0, c = 0, d = 0, e = 0;
 
