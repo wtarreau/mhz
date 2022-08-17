@@ -7,7 +7,7 @@ static inline unsigned long long microseconds()
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * 1000000 + tv.tv_usec;
+	return tv.tv_sec * 1000000ULL + tv.tv_usec;
 }
 
 #if defined(__i386__) || defined(__x86_64__)
