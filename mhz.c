@@ -131,7 +131,7 @@ void run_once(long count)
 	 * among 3 runs of the short loop.
 	 */
 	us_end250 = LLONG_MAX;
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 5; i++) {
 		us_begin   = microseconds();
 		tsc_begin  = rdtsc();
 		loop250(count);
@@ -173,7 +173,7 @@ unsigned int calibrate()
 	unsigned long long start;
 	unsigned int count = 1000;
 
-	while (duration < 20000) {
+	while (duration < 10000) {
 		count = count * 5 / 4;
 		start = microseconds();
 		loop50(count);
