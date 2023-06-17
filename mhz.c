@@ -108,7 +108,9 @@ static __attribute__((noinline,aligned(64))) void loop250(unsigned int n)
 
 void run_once(long count)
 {
-	long long tsc_begin, tsc_end50, tsc_end250;
+	long long tsc_begin;
+	long long tsc_end50 __attribute__((unused));
+	long long tsc_end250 __attribute__((unused));
 	long long us_begin, us_end50, us_end250;
 	long long us_end;
 	int i;
