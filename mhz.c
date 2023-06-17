@@ -211,8 +211,31 @@ unsigned int calibrate()
 	return (count * 20000ULL + duration / 2) / duration;
 }
 
+void usage(const char *name)
+{
+	printf("Usage: %s [-h|-c%s]* [lines [heat [count]]]\n"
+	       "  -h      show this help\n"
+	       "  -c      show CPU freq only (in MHz)\n"
+	       "  -i      report integral frequencies only\n"
+#ifdef HAVE_RDTSC
+	       "  -t      show TSC freq only (in MHz)\n"
+#endif
+	       "  lines   number of measurements (one line per measurement). Def: 1\n"
+	       "  heat    pre-heat time in microseconds. Def: 0\n"
+	       "  count   calibration value, higher is slower but more accurate. Def: auto\n"
+	       "\n", name,
+#ifdef HAVE_RDTSC
+	       "|-t"
+#else
+	       ""
+#endif
+	       );
+	exit(0);
+}
+
 int main(int argc, char **argv)
 {
+	const char *name = argv[0];
 	unsigned int count;
 	long runs = 1;
 
@@ -225,6 +248,8 @@ int main(int argc, char **argv)
 		else if (argv[1][1] == 't')
 			tsc_only = 1;
 #endif
+		else
+			usage(name);
 		argc--; argv++;
 	}
 
