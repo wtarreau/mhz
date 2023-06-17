@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int cpu_only;
+static int tsc_only;
+static int use_ints;
+
 /* returns current time in microseconds */
 static inline unsigned long long microseconds()
 {
@@ -113,6 +117,7 @@ void run_once(long count)
 	long long tsc_end250 __attribute__((unused));
 	long long us_begin, us_end50, us_end250;
 	long long us_end;
+	char mhz[20];
 	int i;
 
 	/* now run the 50 cycles loop. We'll pick the lowest value
@@ -143,18 +148,40 @@ void run_once(long count)
 			us_end250 = us_end;
 	}
 
-	printf("count=%ld us50=%lld us250=%lld diff=%lld cpu_MHz=%.3f",
-	       count, us_end50, us_end250, us_end250 - us_end50,
-	       count * 200.0 / (us_end250 - us_end50));
+	if (use_ints)
+		snprintf(mhz, sizeof(mhz), "%.0f", count * 200.0 / (us_end250 - us_end50) + 0.5);
+	else
+		snprintf(mhz, sizeof(mhz), "%.3f", count * 200.0 / (us_end250 - us_end50));
+
+	if (!cpu_only && !tsc_only) {
+		printf("count=%ld us50=%lld us250=%lld diff=%lld cpu_MHz=%s",
+		       count, us_end50, us_end250, us_end250 - us_end50,
+		       mhz);
+	}
+	else if (cpu_only) {
+		printf("%s\n", mhz);
+		return;
+	}
+
 #ifdef HAVE_RDTSC
-	printf(" tsc50=%lld tsc250=%lld diff=%lld rdtsc_MHz=%.3f",
-	       tsc_end50, tsc_end250, (tsc_end250 - tsc_end50) / count,
-	       (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50));
+	if (use_ints)
+		snprintf(mhz, sizeof(mhz), "%.0f", (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50) + 0.5);
+	else
+		snprintf(mhz, sizeof(mhz), "%.3f", (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50));
+
+	if (!tsc_only) {
+		printf(" tsc50=%lld tsc250=%lld diff=%lld rdtsc_MHz=%s",
+		       tsc_end50, tsc_end250, (tsc_end250 - tsc_end50) / count,
+		       mhz);
+	} else {
+		printf("%s\n", mhz);
+		return;
+	}
 #endif
 	putchar('\n');
 }
 
-/* spend <delay> ms waiting for the CPU's frequency to raise. Will also stop
+/* spend <delay> us waiting for the CPU's frequency to raise. Will also stop
  * on backwards time jumps if any.
  */
 void pre_heat(long delay)
@@ -181,13 +208,25 @@ unsigned int calibrate()
 		loop50(count);
 		duration = microseconds() - start;
 	}
-	return count;
+	return (count * 20000ULL + duration / 2) / duration;
 }
 
 int main(int argc, char **argv)
 {
 	unsigned int count;
 	long runs = 1;
+
+	while (argc > 1 && *argv[1] == '-') {
+		if (argv[1][1] == 'c')
+			cpu_only = 1;
+		else if (argv[1][1] == 'i')
+			use_ints = 1;
+#ifdef HAVE_RDTSC
+		else if (argv[1][1] == 't')
+			tsc_only = 1;
+#endif
+		argc--; argv++;
+	}
 
 	if (argc > 1)
 		runs = atol(argv[1]);
