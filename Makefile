@@ -1,5 +1,5 @@
-CC         := gcc
-CFLAGS     := -O3 -Wall -fomit-frame-pointer
+CC         ?= gcc
+CFLAGS     ?= -O3 -Wall -fomit-frame-pointer
 
 all: mhz
 
