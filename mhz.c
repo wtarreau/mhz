@@ -113,49 +113,49 @@ static __attribute__((noinline,aligned(64))) void loop250(unsigned int n)
 void run_once(long count)
 {
 	long long tsc_begin;
-	long long tsc_end50 __attribute__((unused));
-	long long tsc_end250 __attribute__((unused));
-	long long us_begin, us_end50, us_end250;
-	long long us_end;
+	long long tsc_duration50 __attribute__((unused));
+	long long tsc_duration250 __attribute__((unused));
+	long long us_begin, us_duration50, us_duration250;
+	long long us_duration;
 	unsigned int i;
 	char mhz[20];
 
 	/* now run the 50 cycles loop. We'll pick the lowest value
 	 * among 5 runs of the short loop.
 	 */
-	us_end50 = LLONG_MAX;
+	us_duration50 = LLONG_MAX;
 	for (i = 0; i < 5; i++) {
 		us_begin   = microseconds();
 		tsc_begin  = rdtsc();
 		loop50(count);
-		tsc_end50 = rdtsc() - tsc_begin;
-		us_end    = microseconds() - us_begin;
-		if (us_end < us_end50)
-			us_end50 = us_end;
+		tsc_duration50 = rdtsc() - tsc_begin;
+		us_duration    = microseconds() - us_begin;
+		if (us_duration < us_duration50)
+			us_duration50 = us_duration;
 	}
 
 	/* now run the 250 cycles loop. We'll pick the lowest value
 	 * among 5 runs of the long loop.
 	 */
-	us_end250 = LLONG_MAX;
+	us_duration250 = LLONG_MAX;
 	for (i = 0; i < 5; i++) {
 		us_begin   = microseconds();
 		tsc_begin  = rdtsc();
 		loop250(count);
-		tsc_end250 = rdtsc() - tsc_begin;
-		us_end     = microseconds() - us_begin;
-		if (us_end < us_end250)
-			us_end250 = us_end;
+		tsc_duration250 = rdtsc() - tsc_begin;
+		us_duration     = microseconds() - us_begin;
+		if (us_duration < us_duration250)
+			us_duration250 = us_duration;
 	}
 
 	if (use_ints)
-		snprintf(mhz, sizeof(mhz), "%.0f", count * 200.0 / (us_end250 - us_end50) + 0.5);
+		snprintf(mhz, sizeof(mhz), "%.0f", count * 200.0 / (us_duration250 - us_duration50) + 0.5);
 	else
-		snprintf(mhz, sizeof(mhz), "%.3f", count * 200.0 / (us_end250 - us_end50));
+		snprintf(mhz, sizeof(mhz), "%.3f", count * 200.0 / (us_duration250 - us_duration50));
 
 	if (!cpu_only && !tsc_only) {
 		printf("count=%ld us50=%lld us250=%lld diff=%lld cpu_MHz=%s",
-		       count, us_end50, us_end250, us_end250 - us_end50,
+		       count, us_duration50, us_duration250, us_duration250 - us_duration50,
 		       mhz);
 	}
 	else if (cpu_only) {
@@ -165,13 +165,13 @@ void run_once(long count)
 
 #ifdef HAVE_RDTSC
 	if (use_ints)
-		snprintf(mhz, sizeof(mhz), "%.0f", (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50) + 0.5);
+		snprintf(mhz, sizeof(mhz), "%.0f", (tsc_duration250 - tsc_duration50) / (float)(us_duration250 - us_duration50) + 0.5);
 	else
-		snprintf(mhz, sizeof(mhz), "%.3f", (tsc_end250 - tsc_end50) / (float)(us_end250 - us_end50));
+		snprintf(mhz, sizeof(mhz), "%.3f", (tsc_duration250 - tsc_duration50) / (float)(us_duration250 - us_duration50));
 
 	if (!tsc_only) {
 		printf(" tsc50=%lld tsc250=%lld diff=%lld rdtsc_MHz=%s",
-		       tsc_end50, tsc_end250, (tsc_end250 - tsc_end50) / count,
+		       tsc_duration50, tsc_duration250, (tsc_duration250 - tsc_duration50) / count,
 		       mhz);
 	} else {
 		printf("%s\n", mhz);
