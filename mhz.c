@@ -8,7 +8,7 @@ static int tsc_only;
 static int use_ints;
 
 /* returns current time in microseconds */
-static inline unsigned long long microseconds()
+static inline unsigned long long microseconds(void)
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
@@ -20,7 +20,7 @@ static inline unsigned long long microseconds()
 #endif
 
 #ifdef HAVE_RDTSC
-static inline unsigned long long rdtsc()
+static inline unsigned long long rdtsc(void)
 {
 	unsigned int a, d;
 	asm volatile("rdtsc" : "=a" (a), "=d" (d));
@@ -196,7 +196,7 @@ void pre_heat(long delay)
  * This will ensure that an integral number of clock ticks will have happened
  * on 100, 250, 1000 Hz systems.
  */
-unsigned int calibrate()
+unsigned int calibrate(void)
 {
 	unsigned long long duration = 0;
 	unsigned long long start;
