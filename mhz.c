@@ -117,8 +117,8 @@ void run_once(long count)
 	long long tsc_end250 __attribute__((unused));
 	long long us_begin, us_end50, us_end250;
 	long long us_end;
+	unsigned int i;
 	char mhz[20];
-	int i;
 
 	/* now run the 50 cycles loop. We'll pick the lowest value
 	 * among 5 runs of the short loop.
