@@ -135,7 +135,7 @@ void run_once(long count)
 	}
 
 	/* now run the 250 cycles loop. We'll pick the lowest value
-	 * among 3 runs of the short loop.
+	 * among 5 runs of the long loop.
 	 */
 	us_end250 = LLONG_MAX;
 	for (i = 0; i < 5; i++) {
