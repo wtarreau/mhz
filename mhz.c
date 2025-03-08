@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 static int cpu_only;
 static int tsc_only;
@@ -10,9 +11,15 @@ static int use_ints;
 /* returns current time in microseconds */
 static inline unsigned long long microseconds(void)
 {
+#ifdef CLOCK_MONOTONIC
+	struct timespec tv;
+	clock_gettime(CLOCK_MONOTONIC, &tv);
+	return (tv.tv_sec * 1000000000ULL + tv.tv_nsec) / 1000ULL;
+#else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return tv.tv_sec * 1000000ULL + tv.tv_usec;
+#endif
 }
 
 #if defined(__i386__) || defined(__x86_64__)
