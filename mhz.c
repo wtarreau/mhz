@@ -222,25 +222,6 @@ void pre_heat(long delay)
 		;
 }
 
-/* determines how long loop50() must be run to reach more than 20 milliseconds.
- * This will ensure that an integral number of clock ticks will have happened
- * on 100, 250, 1000 Hz systems.
- */
-unsigned int calibrate(void)
-{
-	unsigned long long duration = 0;
-	unsigned long long start;
-	unsigned int count = 1000;
-
-	while (duration < 10000) {
-		count = count * 5 / 4;
-		start = microseconds();
-		loop50(count);
-		duration = microseconds() - start;
-	}
-	return (count * 20000ULL + duration / 2) / duration;
-}
-
 void usage(const char *name)
 {
 	printf("Usage: %s [-h|-c%s]* [lines [heat [count]]]\n"
@@ -266,7 +247,7 @@ void usage(const char *name)
 int main(int argc, char **argv)
 {
 	const char *name = argv[0];
-	unsigned int count;
+	unsigned int count = 0;
 	long runs = 1;
 
 	while (argc > 1 && *argv[1] == '-') {
@@ -289,10 +270,12 @@ int main(int argc, char **argv)
 	if (argc > 2)
 		pre_heat(atol(argv[2]));
 
-	count = calibrate();
-
+	/* default to initial count value of 1000 */
 	if (argc > 3)
 		count = atol(argv[3]);
+
+	if (count <= 0)
+		count = 1000;
 
 	while (runs--)
 		count = run_once(count);
