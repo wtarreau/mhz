@@ -124,35 +124,47 @@ void run_once(long count)
 	long long tsc_duration250 __attribute__((unused));
 	long long us_begin, us_duration50, us_duration250;
 	long long us_duration;
+	int retries = 20; // up to 1M longer than initial estimate
 	unsigned int i;
 	char mhz[20];
 
-	/* now run the 50 cycles loop. We'll pick the lowest value
-	 * among 5 runs of the short loop.
-	 */
-	us_duration50 = LLONG_MAX;
-	for (i = 0; i < 5; i++) {
-		us_begin   = microseconds();
-		tsc_begin  = rdtsc();
-		loop50(count);
-		tsc_duration50 = rdtsc() - tsc_begin;
-		us_duration    = microseconds() - us_begin;
-		if (us_duration < us_duration50)
-			us_duration50 = us_duration;
-	}
+	while (1) {
+		/* now run the 50 cycles loop. We'll pick the lowest value
+		 * among 5 runs of the short loop.
+		 */
+		us_duration50 = LLONG_MAX;
+		for (i = 0; i < 5; i++) {
+			us_begin   = microseconds();
+			tsc_begin  = rdtsc();
+			loop50(count);
+			tsc_duration50 = rdtsc() - tsc_begin;
+			us_duration    = microseconds() - us_begin;
+			if (us_duration < us_duration50)
+				us_duration50 = us_duration;
+		}
 
-	/* now run the 250 cycles loop. We'll pick the lowest value
-	 * among 5 runs of the long loop.
-	 */
-	us_duration250 = LLONG_MAX;
-	for (i = 0; i < 5; i++) {
-		us_begin   = microseconds();
-		tsc_begin  = rdtsc();
-		loop250(count);
-		tsc_duration250 = rdtsc() - tsc_begin;
-		us_duration     = microseconds() - us_begin;
-		if (us_duration < us_duration250)
-			us_duration250 = us_duration;
+		/* now run the 250 cycles loop. We'll pick the lowest value
+		 * among 5 runs of the long loop.
+		 */
+		us_duration250 = LLONG_MAX;
+		for (i = 0; i < 5; i++) {
+			us_begin   = microseconds();
+			tsc_begin  = rdtsc();
+			loop250(count);
+			tsc_duration250 = rdtsc() - tsc_begin;
+			us_duration     = microseconds() - us_begin;
+			if (us_duration < us_duration250)
+				us_duration250 = us_duration;
+		}
+
+		/* make sure we have a valid measurement */
+		if (us_duration50 && us_duration250 != us_duration50)
+			break;
+
+		/* otherwise we'll do it again waiting twice as long for a few times */
+		if (!retries--)
+			break;
+		count *= 2;
 	}
 
 	if (use_ints)
