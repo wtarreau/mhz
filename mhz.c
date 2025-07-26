@@ -124,7 +124,7 @@ void run_once(long count)
 	long long tsc_duration250 __attribute__((unused));
 	long long us_begin, us_duration50, us_duration250;
 	long long us_duration;
-	int retries = 20; // up to 1M longer than initial estimate
+	int retries = 24; // up to 16M longer than initial estimate
 	unsigned int i;
 	char mhz[20];
 
@@ -143,6 +143,16 @@ void run_once(long count)
 				us_duration50 = us_duration;
 		}
 
+		if (us_duration50 < 20000 && retries) {
+			/* we want at least 20 milliseconds, so let's
+			 * raise the count. We double as long as the
+			 * duration is < 10ms and raise by 25% next.
+			 */
+			count = (us_duration50 < 10000) ? count * 2 : count * 5 / 4;
+			retries--;
+			continue;
+		}
+
 		/* now run the 250 cycles loop. We'll pick the lowest value
 		 * among 5 runs of the long loop.
 		 */
@@ -158,7 +168,7 @@ void run_once(long count)
 		}
 
 		/* make sure we have a valid measurement */
-		if (us_duration50 && us_duration250 != us_duration50)
+		if (us_duration250 != us_duration50)
 			break;
 
 		/* otherwise we'll do it again waiting twice as long for a few times */
