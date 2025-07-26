@@ -117,7 +117,7 @@ static __attribute__((noinline,aligned(64))) void loop250(unsigned int n)
 	} while (__builtin_expect(--n, 1));
 }
 
-void run_once(long count)
+long run_once(long count)
 {
 	long long tsc_begin;
 	long long tsc_duration50 __attribute__((unused));
@@ -189,7 +189,7 @@ void run_once(long count)
 	}
 	else if (cpu_only) {
 		printf("%s\n", mhz);
-		return;
+		return count;
 	}
 
 #ifdef HAVE_RDTSC
@@ -204,10 +204,11 @@ void run_once(long count)
 		       mhz);
 	} else {
 		printf("%s\n", mhz);
-		return;
+		return count;
 	}
 #endif
 	putchar('\n');
+	return count;
 }
 
 /* spend <delay> us waiting for the CPU's frequency to raise. Will also stop
@@ -294,7 +295,7 @@ int main(int argc, char **argv)
 		count = atol(argv[3]);
 
 	while (runs--)
-		run_once(count);
+		count = run_once(count);
 
 	return 0;
 }
