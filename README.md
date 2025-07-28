@@ -13,7 +13,7 @@ at a rate of one operation per clock cycle, not less, not more.
 
 This has been tested on various cores including old 180 MHz MIPS and less old
 MIPS32/MIPS64, many 32- and 64-bit Arm cores of v5/v7/v8/v9 architectures,
-arious i386 and x86_64 up to 6 GHz, RISC-V, PowerPC, Sparc64 and Alpha EV6,
+various i386 and x86_64 up to 6 GHz, RISC-V, PowerPC, Sparc64 and Alpha EV6,
 all of them reporting accurate values.
 
 The program first runs a self-calibration so that the short loop takes at least
@@ -114,8 +114,8 @@ running on multiples of 25/50 MHz. In the Arm world, multiples of 24 MHz are
 quite common, so that advertised frequencies of 1300, 1500, 1600, 1800 and 2000
 MHz are in fact more likely 1296, 1512, 1608, 1800 and 2016.
 
-The program is not sensitive to memory bandwidth as is only uses registers.
-However it is mandatory to build it with optimizations enable (-O2 or -O3), and
+The program is not sensitive to memory bandwidth as it only uses registers.
+However it is mandatory to build it with optimization enabled (-O2 or -O3), and
 never run it built at -O0 as it will perform unwanted memory accesses.
 
 Finally, the CPU frequency alone isn't an indicator of system performance, it's
