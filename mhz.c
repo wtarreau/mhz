@@ -7,6 +7,7 @@
 static int cpu_only;
 static int tsc_only;
 static int use_ints;
+static int loop_forever;
 
 /* returns current time in microseconds */
 static inline unsigned long long microseconds(void)
@@ -224,13 +225,14 @@ void pre_heat(long delay)
 
 void usage(const char *name)
 {
-	printf("Usage: %s [-h|-c%s]* [lines [heat [count]]]\n"
+	printf("Usage: %s [-h|-c%s]* [-l] [lines [heat [count]]]\n"
 	       "  -h      show this help\n"
 	       "  -c      show CPU freq only (in MHz)\n"
 	       "  -i      report integral frequencies only\n"
 #ifdef HAVE_RDTSC
 	       "  -t      show TSC freq only (in MHz)\n"
 #endif
+	       "  -l      run continuously until killed\n"
 	       "  lines   number of measurements (one line per measurement). Def: 1\n"
 	       "  heat    pre-heat time in microseconds. Def: 0\n"
 	       "  count   calibration value, higher is slower but more accurate. Def: auto\n"
@@ -259,6 +261,8 @@ int main(int argc, char **argv)
 		else if (argv[1][1] == 't')
 			tsc_only = 1;
 #endif
+		else if (argv[1][1] == 'l')
+			loop_forever = 1;
 		else
 			usage(name);
 		argc--; argv++;
@@ -277,7 +281,7 @@ int main(int argc, char **argv)
 	if (count <= 0)
 		count = 1000;
 
-	while (runs--)
+	while (loop_forever || runs--)
 		count = run_once(count);
 
 	return 0;
